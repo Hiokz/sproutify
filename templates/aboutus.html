@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel='stylesheet' href="{{ url_for('static', filename='css/aboutus.css') }}">
+<link rel="icon" href="../static/images/logo.png">
+<title>About Us Page</title>
+<!Provide path to link to styling file, image files and 3rd party javascript library––>
+<!-- <img id="CommunityGarden" src="{{url_for('static', filename='images/CommunityGarden.png')}}" style="display: none;"> Display Image -->
+<!Use of Javascript library socket.io.js to connect to the python web server––>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.2/socket.io.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+    var socket = io.connect('http://172.27.152.31:5000');
+});
+</script>
+</head>
+<body>
+<header>
+    <nav>
+        <a href="./">
+            <div class="icon">
+                <img src="../static/images/logo.png" alt="Icon">
+                <p>Sproutify</p>
+            </div>
+        </a>
+        <ul>
+            <li><a href="./signup"; class="register">Register</a></li>
+            <li><a href="./login"; class="login">Log in</a></li>
+            <li><a href="./aboutus"; class="aboutus">About Us</a></li>
+        </ul>
+    </nav>
+</header>
+<section>
+    <div class="background">
+        <h1 class="about-title">About Us</h1>
+        <div class="our">
+            <div class="vision">
+                <h1>OUR VISION</h1>
+                <p>We envision a world where technology and nature coexist harmoniously, enabling communities to thrive through sustainable and innovative gardening practices. Sproutify aspires to be a global leader in smart community gardening, supporting Singapore’s 30 by 30 goal and inspiring cities worldwide to adopt eco-friendly, tech-driven solutions for food security and environmental sustainability. Together, we aim to cultivate a future where everyone can enjoy the benefits of gardening, regardless of age or experience.</p>
+            </div>
+            <div class="mission">
+                <h1>OUR MISSION</h1>
+                <p>At Sproutify, our mission is to revolutionize community gardening by leveraging IoT-enabled smart farming technologies. We aim to make gardening more sustainable, efficient, and accessible for everyone, particularly senior citizens and individuals with limited gardening experience. By providing real-time plant monitoring, automated alerts, and enhanced security features, we empower community gardeners to grow healthier plants with minimal effort, fostering a greener and more food-secure future.</p>
+            </div>
+        </div>
+    </div>
+    <div class="company">
+        <img src="../static/images/about.jpeg" alt="About Us">
+        <div class="description">
+            <h1>About our company</h1>
+            <p>At Sproutify, we are dedicated to transforming community gardening through the power of technology. Our mission is to integrate IoT-enabled solutions that create sustainable, efficient, and accessible gardens, particularly for senior citizens and individuals with limited gardening experience. Founded on the belief that technology can enhance the gardening experience, we aim to simplify plant care and improve productivity in community gardens, fostering a healthier and more connected community.</p>
+            <p>Since our inception, Sproutify has been at the forefront of developing smart farming solutions that make gardening effortless and enjoyable. By providing real-time monitoring of soil conditions, temperature, humidity, and pest activity, our system empowers gardeners with the tools they need to optimize plant health and yields. Additionally, our integrated security features, such as door detection and fire alarms, ensure the safety of both the garden and its users.</p>
+            <p>Our platform is designed to be intuitive and user-friendly, making it easy for anyone, regardless of experience, to care for their plants. Through Sproutify, gardeners can create personalized accounts to track their plant’s health, receive timely alerts, and enhance their gardening experience.</p>
+            <p>We are committed to supporting Singapore’s 30 by 30 goal, which aims to locally produce 30% of the nation’s nutritional needs by 2030. By fostering innovation in urban farming and promoting sustainable practices, Sproutify contributes to the nation’s food security and environmental sustainability.</p>
+            <p>Our team is passionate about leveraging technology to create a smarter, greener future for all. Whether you're an experienced gardener or a beginner, Sproutify is here to make gardening easier, more efficient, and more enjoyable for everyone.</p>
+        </div>
+    </div>
+</section>
+<footer>
+    <div class="footer-flex">
+        <div class="social">
+            <div class="icon">
+                <img src="../static/images/logo.png" alt="Icon">
+                <p>Sproutify</p>
+            </div>
+            <div>
+                <a href="https://www.instagram.com/"><img src="../static/images/instagram.png" alt="Instagram"></a>
+                <a href="https://x.com/"><img src="../static/images/twitter.png" alt="Twitter"></a>
+                <a href="https://www.facebook.com/"><img src="../static/images/facebook.png" alt="Facebook"></a>
+                <a href="https://sg.linkedin.com/"><img src="../static/images/linkedin.png" alt="LinkedIn"></a>
+            </div>
+        </div>
+        <div class="grid-footer">
+            <div>
+                <p>Discover</p>
+                <a href="#">Projects</a>
+                <a href="#">Resources</a>
+                <a href="#">Forum</a>
+                <a href="#">#Hashtags</a>
+                <a href="#">The Challenges</a>
+            </div>
+            <div>
+                <p>About</p>
+                <a href="#">About Us</a>
+                <a href="#">Our Blog</a>
+                <a href="#">Contact Us</a>
+                <a href="#">Work with us</a>
+                <a href="#">Learn More</a>
+            </div>
+            <div>
+                <p>Collaborate</p>
+                <a href="#">Involve your company</a>
+                <a href="#">Partner with Us</a>
+                <a href="#">Become an Ambassador</a>
+                <a href="#">Volunteer Opportunities</a>
+                <a href="#">Developer API</a>
+            </div>
+        </div>
+    </div>
+    <p class="policies"><a href="#">Terms of Use</a> · <a href="#">Terms of Service</a> · <a href="#">Privacy policy</a> · <a href="#">Cookies policy</a> · <a href="#">Consent preferences</a> · Copyright © 2025 - 2030 Sproutify SOLUTIONS, SL</p>
+</footer>
+</body>
+</html>

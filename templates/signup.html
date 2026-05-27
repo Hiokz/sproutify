@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel='stylesheet' href="{{ url_for('static', filename='css/signup.css') }}">
+<link rel="icon" href="../static/images/logo.png">
+<title>Sign Up Page</title>
+<img id="hide" src="{{url_for('static', filename='images/hide.png')}}" style="display: none;">
+<img id="show" src="{{url_for('static', filename='images/view.png')}}" style="display: none;">
+<!Provide path to link to styling file, image files and 3rd party javascript library––>
+<!-- <img id="CommunityGarden" src="{{url_for('static', filename='images/CommunityGarden.png')}}" style="display: none;"> Display Image -->
+<!Use of Javascript library socket.io.js to connect to the python web server––>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.2/socket.io.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+    var socket = io.connect('http:// 192.168.1.13:5000');
+});
+</script>
+</head>
+<body>
+<header>
+    <nav>
+        <a href="./">
+            <div class="icon">
+                <img src="../static/images/logo.png" alt="Icon">
+                <p>Sproutify</p>
+            </div>
+        </a>
+        <ul>
+            <li><a href="./signup"; class="register">Register</a></li>
+            <li><a href="./login"; class="login">Log in</a></li>
+            <li><a href="./aboutus"; class="aboutus">About Us</a></li>
+        </ul>
+    </nav>
+</header>
+<section>
+  <div class="signupsection">
+    <h1>Sign Up for Sproutify</h1>
+
+    <form id="signupForm">
+        <div class="name">
+        <div class="input">
+            <img class="left" src="../static/images/account.png" alt="First Name">
+            <input class="bar" type="text" name="First Name" pattern="[A-Za-z0-9_\s]{4,25}"
+            placeholder="First Name" minlength="0" maxlength="25" size="30" 
+            required>
+        </div>
+        <div class="input">
+            <img class="left" src="../static/images/account.png" alt="Last Name">
+            <input class="bar" type="text" name="Last Name" pattern="[A-Za-z0-9_\s]{4,25}"
+            placeholder="Last Name" minlength="0" maxlength="25" size="30" 
+            required>
+        </div>
+        </div>
+
+        <div class="input">
+        <img class="left" src="../static/images/mail.png" alt="Email">
+        <input class="bar" id="email" type="email" name="Email Address"
+        placeholder="Email Address" maxlength="60" size="70"
+        required>
+        </div>
+        <div class="input">
+        <img class="left" src="../static/images/padlock.png" alt="Password">
+        <input class="password" id="password" type="password" name="Password" pattern="(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*]).{10,25}"
+        placeholder="Password" minlength="10" maxlength="25" size="30"
+        title="Password must contain at least one number, one uppercase,&#013; lowercase letter and one special character, and at least 10 or &#013; more characters."
+        required>
+        <img class="right" src="../static/images/hide.png" alt="Hide Password">
+        </div>
+    
+        <div class="input">
+        <img class="left" src="../static/images/padlock.png" alt="Confirm Password">
+        <input class="password2" id="confirmPassword" type="password" name="Confirm_Password" pattern="(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*]).{10,25}"
+        placeholder="Confirm Password" minlength="10" maxlength="25" size="30" 
+        title="Password must contain at least one number, one uppercase,&#013; lowercase letter and one special character, and at least 10 or &#013; more characters."
+        required>
+        <img class="right2" src="../static/images/hide.png" alt="Hide Password">
+        </div>
+        <input type="submit" class="CrtAcc" value="Create Account" name="SignUp">
+    </form>
+    <script>
+      let eyeicon = document.querySelector(".right");
+      let eyeicon2 = document.querySelector(".right2");
+      let password = document.querySelector(".password");
+      let password2 = document.querySelector(".password2");
+      var hide = document.getElementById("hide");
+      var show = document.getElementById("show");
+
+      eyeicon.onclick = function(){
+          if ((password.type) == "password"){
+              password.type = "text";
+              eyeicon.src = show.src;
+          }
+          else{
+              password.type = "password";
+              eyeicon.src = hide.src;
+          }
+      };
+
+      eyeicon2.onclick = function(){
+          if ((password2.type) == "password"){
+              password2.type = "text";
+              eyeicon2.src = show.src;
+          }
+          else{
+              password2.type = "password";
+              eyeicon2.src = hide.src;
+          }
+        };
+        // Handle form submission
+      document.getElementById("signupForm").addEventListener("submit", function (e) {
+      e.preventDefault(); // Prevent the form from submitting
+
+      // Get email and password values
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+
+      // Check if passwords match
+      if (password !== confirmPassword) {
+        alert("Passwords do not match. Please try again.");
+        return; // Stop execution if passwords don't match
+      }
+
+      // Store data in localStorage
+      localStorage.setItem("userEmail", email);
+      localStorage.setItem("userPassword", password);
+
+      alert("Signup successful!");
+      window.location.href = "./login"; // Redirect to dashboard
+    });
+</script>
+  </div>
+</section>
+<footer>
+    <div class="footer-flex">
+        <div class="social">
+            <div class="icon">
+                <img src="../static/images/logo.png" alt="Icon">
+                <p>Sproutify</p>
+            </div>
+            <div>
+                <a href="https://www.instagram.com/"><img src="../static/images/instagram.png" alt="Instagram"></a>
+                <a href="https://x.com/"><img src="../static/images/twitter.png" alt="Twitter"></a>
+                <a href="https://www.facebook.com/"><img src="../static/images/facebook.png" alt="Facebook"></a>
+                <a href="https://sg.linkedin.com/"><img src="../static/images/linkedin.png" alt="LinkedIn"></a>
+            </div>
+        </div>
+        <div class="grid-footer">
+            <div>
+                <p>Discover</p>
+                <a href="#">Projects</a>
+                <a href="#">Resources</a>
+                <a href="#">Forum</a>
+                <a href="#">#Hashtags</a>
+                <a href="#">The Challenges</a>
+            </div>
+            <div>
+                <p>About</p>
+                <a href="#">About Us</a>
+                <a href="#">Our Blog</a>
+                <a href="#">Contact Us</a>
+                <a href="#">Work with us</a>
+                <a href="#">Learn More</a>
+            </div>
+            <div>
+                <p>Collaborate</p>
+                <a href="#">Involve your company</a>
+                <a href="#">Partner with Us</a>
+                <a href="#">Become an Ambassador</a>
+                <a href="#">Volunteer Opportunities</a>
+                <a href="#">Developer API</a>
+            </div>
+        </div>
+    </div>
+    <p class="policies"><a href="#">Terms of Use</a> · <a href="#">Terms of Service</a> · <a href="#">Privacy policy</a> · <a href="#">Cookies policy</a> · <a href="#">Consent preferences</a> · Copyright © 2025 - 2030 Sproutify SOLUTIONS, SL</p>
+</footer>
+</body>
+</html>

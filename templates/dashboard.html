@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel='stylesheet' href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="icon" href="../static/images/logo.png">
+<title>Dashboard Page</title>
+<!Provide path to link to styling file, image files and 3rd party javascript library––>
+<!-- <img id="CommunityGarden" src="{{url_for('static', filename='images/CommunityGarden.png')}}" style="display: none;"> Display Image -->
+<img id="redfire" src="{{url_for('static', filename='images/fire.png')}}" style="display: none;">
+<img id="blackfire" src="{{url_for('static', filename='images/blackfire.png')}}" style="display: none;">
+<img id="dooropen" src="{{url_for('static', filename='images/dooropen.png')}}" style="display: none;">
+<img id="doorclose" src="{{url_for('static', filename='images/doorclose.png')}}" style="display: none;">
+<img id="pestblack" src="{{url_for('static', filename='images/black_cockroach.png')}}" style="display: none;">
+<img id="pestred" src="{{url_for('static', filename='images/red_cockroach.png')}}" style="display: none;">
+<!Use of Javascript library socket.io.js to connect to the python web server––>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.2/socket.io.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        var socket = io.connect('http://192.168.0.101:5000');
+        // Canvas setup
+        var flameCanvas = document.getElementById("flame");
+        var flameContext = flameCanvas.getContext("2d");
+        var flameRedImage = document.getElementById("redfire");
+        var flameBlackImage = document.getElementById("blackfire");
+
+        // Door Detection Canvas Setup
+        var doorCanvas = document.getElementById("door");
+        var doorContext = doorCanvas.getContext("2d");
+        var doorOpenImage = document.getElementById("dooropen");
+        var doorCloseImage = document.getElementById("doorclose");
+
+        // Set initial door status to "Door Closed" and display the door close image
+        function setDoorClosed() {
+            $('#DoorDetection').text('Door Close');
+            doorContext.clearRect(0, 0, doorCanvas.width, doorCanvas.height); // Clear canvas
+            doorContext.drawImage(doorCloseImage, 70, 50); // Draw closed door image
+        }
+
+        // Call function to initialize door as closed
+        setDoorClosed();
+
+        socket.on('DoorDetection', function (msg) {
+        console.log('DoorDetection message received:', msg);
+
+        if (msg.data === 'Door Open') {
+            $('#message').text('Door Open: Correct PW');
+            doorContext.clearRect(0, 0, doorCanvas.width, doorCanvas.height); // Clear canvas
+            doorContext.drawImage(doorOpenImage, 70, 50); // Draw open door image
+            $('#DoorDetection').text('Door Status: Door Open'); // Update door status text
+
+            // Automatically revert to "Door Closed" after 5 seconds
+            setTimeout(function () {
+                setDoorClosed(); // Revert to door closed after 5 seconds
+                $('#message').text(''); // Clear message
+            }, 5000);
+        } else if (msg.data === 'Door Close') {
+            $('#message').text('Door Close: Incorrect PW');
+            setDoorClosed(); // Set door to closed state
+        }
+    });
+
+        function revertImageAndClearText() {
+            // Clear the door canvas
+            doorContext.clearRect(0, 0, doorCanvas.width, doorCanvas.height);
+
+            // Draw the "Door Close" image
+            doorContext.drawImage(doorCloseImage, 70, 50);
+
+            // Clear the text message
+            $('#message').text('');
+
+            // Reset the door status
+            $('#DoorDetection').text('Door Close');
+        }
+
+
+        var PestCanvas = document.getElementById("pestCanvas")
+        var PestContext = PestCanvas.getContext("2d");
+        var PestBlackImage = document.getElementById("pestblack");
+        var PestRedImage = document.getElementById("pestred");
+
+        // Additional initialization code can go here               
+        socket.on('PestDetect', function(RxData) {
+            $('PestDetection').text(RxData.data);
+            if (RxData.data === "No Pest Detected") {
+                PestContext.drawImage(PestBlackImage, 28,50);
+ 
+            } else {
+                PestContext.clearRect(28, 50, 200, 200);
+                PestContext.drawImage(PestRedImage, 28, 50); // Render black fire image
+            }
+        });
+        
+        socket.on('flame_click', function (RxData) {
+            console.log('Flame Status:', RxData.data); // Debugging log
+            $('#flameStatus').text( RxData.data); // Update flame status text
+            
+            if (RxData.data === "Detected") {
+                flameContext.clearRect(0, 0, flameCanvas.width, flameCanvas.height); // Clear canvas
+                flameContext.drawImage(flameRedImage, 28, 50); // Render red fire image
+            } else {
+                flameContext.clearRect(28, 50, 200, 200);
+                flameContext.drawImage(flameBlackImage, 28, 50); // Render black fire image
+            }
+        });
+        
+        // Manual call point (tamper button) status
+        socket.on('tamper_click', function (RxData) {
+            console.log('Tamper Stauts:', RxData.data)
+            $('#TamperStatus').text(RxData.data);
+            if (RxData.data === "Activated") {
+                $('#ManualCallPointAlert').show();
+                $('#ResetButton').prop('disabled', false); // Disable the Reset button
+            } else {
+                $('#ManualCallPointAlert').hide();
+                $('#ResetButton').prop('disabled', true); // Enable the Reset button
+            }
+        });
+        // Reset button
+        $('#ResetButton').click(function () {
+            socket.emit('ControlUSR0Led', 'off');
+        });
+    
+        socket.on('DoorDetection', function(msg) {
+    // Log the received message for debugging
+    console.log('DoorDetection message received:', msg);
+
+    if (msg.data === 'Door Open') {
+        $('#message').text('Door Open: Correct PW');
+        doorContext.clearRect(0, 0, doorCanvas.width, doorCanvas.height); // Clear canvas
+        doorContext.drawImage(doorOpenImage, 70, 50); // Draw open door
+        $('#DoorDetection').text('Door Open'); // Update door status text
+    } else if (msg.data === 'Door Close') {
+        $('#message').text('Door Close: Incorrect PW');
+        doorContext.clearRect(0, 0, doorCanvas.width, doorCanvas.height); // Clear canvas
+        doorContext.drawImage(doorCloseImage, 70, 50); // Draw closed door
+        $('#DoorDetection').text('Door Close'); // Update door status text
+    }
+});
+
+
+function revertImageAndClearText() {
+    doorContext.clearRect(28, 50 ,255 ,255)
+    doorContext.drawImage(doorCloseImage, 70, 50); // Revert to closed door
+    $('#message').text(''); // Clear the message
+    $('DoorDetection').text('Door Close'); // Reset door status to default ("???")
+}
+});
+
+$(document).ready(function () {
+    var socket = io.connect('http://192.168.0.2:5000');
+
+    
+
+    // Confirm socket connection
+    socket.on('connect', function () {
+        console.log('Socket connected successfully.');
+    });
+
+    // Web_BBBW1Event handler
+    socket.on('Web_BBBW1Event', function (RxData) {
+        console.log('Received Web_BBBW1Event:', RxData);
+        $('#bbbw1').text(RxData.data);
+    });
+
+    // Web_BBBW2Event handler
+    socket.on('Web_BBBW2Event', function (RxData) {
+        console.log('Received Web_BBBW2Event:', RxData);
+        $('#bbbw2').text(RxData.data);
+    });
+
+    // Web_BBBW2Event handler
+    socket.on('Web_BBBW3Event', function (RxData) {
+        console.log('Received Web_BBBW3Event:', RxData);
+        $('#bbbw3').text(RxData.data);
+    });
+
+    // Web_BBBW4Event handler
+    socket.on('Web_BBBW4Event', function (RxData) {
+        console.log('Received Web_BBBW4Event:', RxData);
+        $('#bbbw4').text(RxData.data);
+    });
+
+    // Web_BBBW2Event handler
+    socket.on('Web_BBBW5Event', function (RxData) {
+        console.log('Received Web_BBBW5Event:', RxData);
+        $('#bbbw5').text(RxData.data);
+    });
+    
+});
+
+</script>
+</head>
+<body>
+<header>
+    <nav>
+        <a href="./">
+            <div class="icon">
+                <img src="../static/images/logo.png" alt="Icon">
+                <p>Sproutify</p>
+            </div>
+        </a>
+        <ul>
+            <li><a href="./task"; class="task">Task Management</a></li>
+            <li><a href="./signup"; class="register">Register</a></li>
+            <li><a href="./login"; class="login">Log in</a></li>
+            <li><a href="./aboutus"; class="aboutus">About Us</a></li>
+        </ul>
+    </nav>
+</header>
+<section>
+    <div class="weather-container">
+        <div class="weather">
+            <div class="left">
+                <div class="temperature">
+                    <img src="../static/images/cloudy.png" alt="cloudy">
+                    <h1>30°C</h1>
+                </div>
+                <div class="stats">
+                    <p>Precipitation: 45%</p>
+                    <p>Humidity: 71%</p>
+                    <p>Wind: 13 km/h</p>
+                </div>
+            </div>
+            <div class="right">
+                <h1>Weather</h1>
+                <p>Monday</p>
+                <p>Cloudy</p>
+            </div>
+        </div>
+        <div class="weather-grid">
+            <div>   
+                <p>4 am</p>
+                <h1>Mon</h1>
+                <img src="../static/images/cloudy.png" alt="cloudy">
+                <p>30°C</p>
+            </div>
+            <div>
+                <p>7 am</p>
+                <h1>Tue</h1>
+                <img src="../static/images/rain.png" alt="rain">
+                <p>29°C</p>
+            </div>
+            <div>
+                <p>10 am</p>
+                <h1>Wed</h1>
+                <img src="../static/images/rain.png" alt="rain">
+                <p>29°C</p>
+            </div>
+            <div>
+                <p>1 pm</p>
+                <h1>Thu</h1>
+                <img src="../static/images/rain.png" alt="rain">
+                <p>29°C</p>
+            </div>
+            <div>
+                <p>4 pm</p>
+                <h1>Fri</h1>
+                <img src="../static/images/cloudy.png" alt="cloudy">
+                <p>30°C</p>
+            </div>
+            <div>
+                <p>7 pm</p>
+                <h1>Sat</h1>
+                <img src="../static/images/cloudy.png" alt="cloudy">
+                <p>30°C</p>
+            </div>
+            <div>
+                <p>10 pm</p>
+                <h1>Sun</h1>
+                <img src="../static/images/cloudy.png" alt="cloudy">
+                <p>30°C</p>
+            </div>
+            <div>
+                <p>1 am</p>
+                <h1>Mon</h1>
+                <img src="../static/images/cloudy.png" alt="cloudy">
+                <p>30°C</p>
+            </div>
+        </div>
+    </div>
+    <div class="grid-container">
+        <div>
+            <h1>Fire Alarm</h1>
+            <p class="live">LIVE</p>
+            <canvas id="flame" width="250" height="250"></canvas>
+            <p class="status"><span id="flameStatus">???</span></p>
+        </div>
+        <div>
+            <h1>Door Detection</h1>
+            <p class="live">LIVE</p>
+            <canvas id="door" width="250" height="250"></canvas>
+            <p class="status"><span id="DoorDetection">???</span></p>
+ <!-- Updated here -->
+        </div>
+        <div>
+            <h1>Pest Detection</h1>
+            <p class="live">LIVE</p>
+            <canvas id="pestCanvas" height="250" width="250"></canvas>
+            <p class="status"><PestDetection>???</PestDetection></p>
+        </div>
+    </div>
+
+
+    <div class="chart">
+        <h1>UV Light Intensity Chart</h1>
+        <canvas id="uvChart" width="1500" height="400"></canvas>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var ctxUV = document.getElementById('uvChart').getContext('2d');
+            var uvChart = new Chart(ctxUV, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'UV Intensity (LUX)',
+                        data: [],
+                        borderColor: 'yellow',
+                        backgroundColor: 'rgba(255,255,0, 0.2)',
+                        borderWidth: 2,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: 'Time' } },
+                        y: { title: { display: true, text: 'UV Intensity (LUX)' }, suggestedMin: 0, suggestedMax: 1000 }
+                    }
+                }
+            });
+    
+            var socket = io.connect('http://192.168.0.101:5000');
+            socket.on('Web_BBBW1Event', function (RxData) {
+                var currentTime = new Date().toLocaleTimeString();
+                var newUV = parseFloat(RxData.data);
+    
+                uvChart.data.labels.push(currentTime);
+                uvChart.data.datasets[0].data.push(newUV);
+    
+                if (uvChart.data.labels.length > 10) {
+                    uvChart.data.labels.shift();
+                    uvChart.data.datasets[0].data.shift();
+                }
+    
+                uvChart.update();
+            });
+        });
+    </script>
+       <div class="chart">
+        <h1>Temperature Chart</h1>
+        <canvas id="temperatureChart" width="1500" height="400"></canvas>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var ctx = document.getElementById('temperatureChart').getContext('2d');
+            var temperatureChart = new Chart(ctx, {
+                type: 'line', // Line chart
+                data: {
+                    labels: [], // Time labels (e.g., timestamps)
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: [], // Temperature data points
+                        borderColor: 'red',
+                        backgroundColor: 'rgba(255, 0, 0, 0.2)',
+                        borderWidth: 2,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: 'Time' } },
+                        y: { title: { display: true, text: 'Temperature (°C)' }, suggestedMin: 0, suggestedMax: 50 }
+                    }
+                }
+            });
+    
+            var socket = io.connect('http://192.168.0.101:5000');
+    
+            // Listen for temperature updates
+            socket.on('Web_BBBW2Event', function (RxData) {
+                var currentTime = new Date().toLocaleTimeString(); // Get current time
+                var newTemperature = parseFloat(RxData.data); // Convert received data to number
+    
+                // Add new data to the chart
+                temperatureChart.data.labels.push(currentTime);
+                temperatureChart.data.datasets[0].data.push(newTemperature);
+    
+                // Keep only the last 10 data points to prevent overcrowding
+                if (temperatureChart.data.labels.length > 10) {
+                    temperatureChart.data.labels.shift();
+                    temperatureChart.data.datasets[0].data.shift();
+                }
+    
+                // Update the chart
+                temperatureChart.update();
+            });
+        });
+    </script>
+    <div class="chart">
+        <h1>Gas Intensity Chart</h1>
+        <canvas id="gasChart" width="1500" height="400"></canvas>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var ctxGas = document.getElementById('gasChart').getContext('2d');
+            var gasChart = new Chart(ctxGas, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Gas Intensity (PPM)',
+                        data: [],
+                        borderColor: 'green',
+                        backgroundColor: 'rgba(0, 255, 0, 0.2)',
+                        borderWidth: 2,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: 'Time' } },
+                        y: { title: { display: true, text: 'Gas Intensity (PPM)' }, suggestedMin: 0, suggestedMax: 1000 }
+                    }
+                }
+            });
+    
+            var socket = io.connect('http://192.168.0.101:5000');
+            socket.on('Web_BBBW3Event', function (RxData) {
+                var currentTime = new Date().toLocaleTimeString();
+                var newGas = parseFloat(RxData.data);
+    
+                gasChart.data.labels.push(currentTime);
+                gasChart.data.datasets[0].data.push(newGas);
+    
+                if (gasChart.data.labels.length > 10) {
+                    gasChart.data.labels.shift();
+                    gasChart.data.datasets[0].data.shift();
+                }
+    
+                gasChart.update();
+            });
+        });
+    </script>
+
+    
+    <div class="chart">
+        <h1>Humidity Chart</h1>
+        <canvas id="humidityChart" width="1500" height="400"></canvas>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var ctxHumidity = document.getElementById('humidityChart').getContext('2d');
+            var humidityChart = new Chart(ctxHumidity, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Humidity (%)',
+                        data: [],
+                        borderColor: 'blue',
+                        backgroundColor: 'rgba(0, 0, 255, 0.2)',
+                        borderWidth: 2,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: 'Time' } },
+                        y: { title: { display: true, text: 'Humidity (%)' }, suggestedMin: 0, suggestedMax: 100 }
+                    }
+                }
+            });
+    
+            var socket = io.connect('http://192.168.0.101:5000');
+            socket.on('Web_BBBW4Event', function (RxData) {
+                var currentTime = new Date().toLocaleTimeString();
+                var newHumidity = parseFloat(RxData.data);
+    
+                humidityChart.data.labels.push(currentTime);
+                humidityChart.data.datasets[0].data.push(newHumidity);
+    
+                if (humidityChart.data.labels.length > 10) {
+                    humidityChart.data.labels.shift();
+                    humidityChart.data.datasets[0].data.shift();
+                }
+    
+                humidityChart.update();
+            });
+        });
+    </script>
+    <div class="chart">
+        <h1>Pressure Chart</h1>
+        <canvas id="pressureChart" width="1500" height="400"></canvas>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var ctxPressure = document.getElementById('pressureChart').getContext('2d');
+            var pressureChart = new Chart(ctxPressure, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Pressure (hPa)',
+                        data: [],
+                        borderColor: 'purple',
+                        backgroundColor: 'rgba(128, 0, 128, 0.2)',
+                        borderWidth: 2,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: 'Time' } },
+                        y: { title: { display: true, text: 'Pressure (hPa)' }, suggestedMin: 0, suggestedMax: 1100 }
+                    }
+                }
+            });
+    
+            var socket = io.connect('http://192.168.0.101:5000');
+            socket.on('Web_BBBW5Event', function (RxData) {
+                var currentTime = new Date().toLocaleTimeString();
+                var newPressure = parseFloat(RxData.data);
+    
+                pressureChart.data.labels.push(currentTime);
+                pressureChart.data.datasets[0].data.push(newPressure);
+    
+                if (pressureChart.data.labels.length > 10) {
+                    pressureChart.data.labels.shift();
+                    pressureChart.data.datasets[0].data.shift();
+                }
+    
+                pressureChart.update();
+            });
+        });
+    </script>
+
+<div class="chart">
+    <h1>Altitude Chart</h1>
+    <canvas id="altitudeChart" width="1500" height="400"></canvas>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var ctxAltitude = document.getElementById('altitudeChart').getContext('2d');
+        var altitudeChart = new Chart(ctxAltitude, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Altitude (m)',
+                    data: [],
+                    borderColor: 'blue',
+                    backgroundColor: 'rgba(0, 0, 255, 0.2)',
+                    borderWidth: 2,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { title: { display: true, text: 'Time' } },
+                    y: { title: { display: true, text: 'Altitude (m)' }, suggestedMin: -50, suggestedMax: 50 }
+                }
+            }
+        });
+
+        var socket = io.connect('http://192.168.0.101:5000');
+        socket.on('Web_BBBW6Event', function (RxData) {
+            var currentTime = new Date().toLocaleTimeString();
+            var newAltitude = parseFloat(RxData.data);
+
+            altitudeChart.data.labels.push(currentTime);
+            altitudeChart.data.datasets[0].data.push(newAltitude);
+
+            if (altitudeChart.data.labels.length > 10) {
+                altitudeChart.data.labels.shift();
+                altitudeChart.data.datasets[0].data.shift();
+            }
+
+            altitudeChart.update();
+        });
+    });
+</script>
+
+    
+    <div class="MCP">
+        <h1>Manual Call Point</h1>
+        <p class="live">LIVE</p>
+        <button id="ResetButton" disabled>Reset</button>
+        <p class="MCPStatus">Manual Call Point Status: <span id="TamperStatus">???</span></p>
+    </div>
+</section>
+<footer>
+    <div class="footer-flex">
+        <div class="social">
+            <div class="icon">
+                <img src="../static/images/logo.png" alt="Icon">
+                <p>Sproutify</p>
+            </div>
+            <div>
+                <a href="https://www.instagram.com/"><img src="../static/images/instagram.png" alt="Instagram"></a>
+                <a href="https://x.com/"><img src="../static/images/twitter.png" alt="Twitter"></a>
+                <a href="https://www.facebook.com/"><img src="../static/images/facebook.png" alt="Facebook"></a>
+                <a href="https://sg.linkedin.com/"><img src="../static/images/linkedin.png" alt="LinkedIn"></a>
+            </div>
+        </div>
+        <div class="grid-footer">
+            <div>
+                <p>Discover</p>
+                <a href="#">Projects</a>
+                <a href="#">Resources</a>
+                <a href="#">Forum</a>
+                <a href="#">#Hashtags</a>
+                <a href="#">The Challenges</a>
+            </div>
+            <div>
+                <p>About</p>
+                <a href="#">About Us</a>
+                <a href="#">Our Blog</a>
+                <a href="#">Contact Us</a>
+                <a href="#">Work with us</a>
+                <a href="#">Learn More</a>
+            </div>
+            <div>
+                <p>Collaborate</p>
+                <a href="#">Involve your company</a>
+                <a href="#">Partner with Us</a>
+                <a href="#">Become an Ambassador</a>
+                <a href="#">Volunteer Opportunities</a>
+                <a href="#">Developer API</a>
+            </div>
+        </div>
+    </div>
+    <p class="policies"><a href="#">Terms of Use</a> · <a href="#">Terms of Service</a> · <a href="#">Privacy policy</a> · <a href="#">Cookies policy</a> · <a href="#">Consent preferences</a> · Copyright © 2025 - 2030 Sproutify SOLUTIONS, SL</p>
+</footer>
+</body>
+</html>
